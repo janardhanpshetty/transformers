@@ -16,21 +16,23 @@ import org.apache.spark.sql.types._
 
 /**
  * Created by jshetty on 7/30/16.
- * Tranformer to capitalize string
+ * Tranformer to capitalize Seq[string]
+ * Input = Seq[String] > Seq[String]
  */
 
-class Capitalizer(override val uid: String) extends UnaryTransformer[String, String, Capitalizer] {
+class Capitalizer(override val uid: String) extends UnaryTransformer[Seq[String], Seq[String], Capitalizer] {
 
   def this() = this(Identifiable.randomUID("capitalizer"))
 
   override protected def validateInputType(inputType: DataType): Unit = {
-    require(inputType == StringType, s"Input type must be string type but got $inputType.")
+    require(inputType == ArrayType(StringType, true), s"Input type must be string type but got $inputType.")
   }
 
-  override protected def outputDataType: DataType = StringType
 
-  override def createTransformFunc: String => String = {
-    _.toLowerCase().capitalize
+  override protected def outputDataType: DataType = new ArrayType(StringType, false)
+
+  override def createTransformFunc: Seq[String] => Seq[String] = {
+    _.map((str:String) => str.toLowerCase().capitalize).toSeq
   }
 
   override def copy(extra: ParamMap): Capitalizer = defaultCopy(extra)
