@@ -1,7 +1,7 @@
 package transformers.ml
 
 import org.apache.spark.ml.UnaryTransformer
-import org.apache.spark.ml.param.{IntParam, ParamMap, ParamValidators}
+import org.apache.spark.ml.param.{IntParam, ParamValidators}
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.types.{ArrayType, DataType, StringType}
 
@@ -44,5 +44,4 @@ class StopWordsShingler(override val uid: String) extends UnaryTransformer[Seq[S
 
   override protected def outputDataType: DataType = new ArrayType(StringType, false)
 
-  override def copy(extra: ParamMap): StopWordsShingler = defaultCopy(extra)
 }
