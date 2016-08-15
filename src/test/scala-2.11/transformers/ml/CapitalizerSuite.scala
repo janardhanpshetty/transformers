@@ -1,29 +1,37 @@
 package transformers.ml
 
+import org.apache.spark.sql.{Row, Dataset}
 import org.scalatest.FunSuite
 
 /**
  * Created by jshetty on 8/13/16.
  */
+case class CapitalizerTestData(inputWordsArray: Array[String], wantedWordsArray: Array[String])
+
 class CapitalizerSuite extends FunSuite with SparkFunContext{
+  import transformers.ml.CapitalizerSuite._
+
   test("Capitalizer Test"){
 
-    val wordDataFrame = spark.createDataFrame(Seq(
-      (0, Array("Hi", "I", "heard", "about", "Spark")),
-      (1, Array("I", "wish", "Java", "could", "use", "case", "classes")),
-      (2, Array("Logistic", "regression", "models", "are", "neat"))
-    )).toDF("label", "words")
+    val capitalizer = new Capitalizer().setInputCol("inputWordsArray").setOutputCol("capital")
 
-    val capitalizer = new Capitalizer().setInputCol("words").setOutputCol("capital").transform(wordDataFrame)
-
-    val expected = spark.createDataFrame(Seq(
-      (0, Array("Hi", "I", "heard", "about", "Spark"), Array("Hi", "I", "Heard", "About", "Spark")),
-      (1, Array("I", "wish", "Java", "could", "use", "case", "classes"),  Array("I", "Wish", "Java", "Could", "Use", "Case", "Classes")),
-      (2, Array("Logistic", "regression", "models", "are", "neat"), Array("Logistic", "Regression", "Models", "Are", "Neat"))
-    )).toDF("label", "words","capital")
-
-    assert(capitalizer.collect().deep == expected.collect().deep)
-
+    val dataset = spark.createDataFrame(Seq(
+      CapitalizerTestData(
+        Array("hi", "I", "heard", "about", "spark"),
+        Array("Hi", "I", "Heard", "About", "Spark")
+      )
+    )
+    )
+    testCapitalizer(capitalizer, dataset)
   }
+}
 
+object CapitalizerSuite extends FunSuite with SparkFunContext{
+
+  def testCapitalizer(t: Capitalizer, dataset: Dataset[_]): Unit = {
+    t.transform(dataset)
+      .select("capital", "wantedWordsArray")
+      .collect()
+      .foreach { case Row(actualWord, wantedWord) =>  assert(actualWord === wantedWord) }
+  }
 }
